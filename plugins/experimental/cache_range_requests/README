@@ -33,8 +33,8 @@ Configuration:
 
     Or for a global plugin where all range requests are processed,
     Add cache_range_requests.so to the plugin.config
-
-#@plugin=cache_range_requests.so @pparam=mp4|flv @pparam=1
+#migu_empty: no ext
+#@plugin=cache_range_requests.so @pparam=mp4|flv|migu_empty @pparam=1
 #???????????????206??
 #????????cacke_key??
 #@plugin=cache_range_requests.so
