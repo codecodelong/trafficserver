@@ -34,6 +34,9 @@
 #define PLUGIN_NAME "cache_range_requests"
 #define DEBUG_LOG(fmt, ...) TSDebug(PLUGIN_NAME, "[%s:%d] %s(): " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #define ERROR_LOG(fmt, ...) TSError("[%s:%d] %s(): " fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#define nullptr 0
+//path not exist ext
+#define MIGU_EXT_EMPTY "migu_empty"
 
 struct txndata {
     char *range_value;
@@ -473,22 +476,25 @@ TSRemapDoRemap(void *ih, TSHttpTxn txnp, TSRemapRequestInfo *rri) {
         TSDebug(PLUGIN_NAME, "convert_url_func working on path: %s", pathTmp);
 
         const char *comma, *f_find;
+		int empty_len = strlen(MIGU_EXT_EMPTY) + 1;
+		int ext_len = path_len > empty_len?path_len:empty_len;
+		char ext[ext_len];
         comma = strrchr(pathTmp, '.');
-//        TSDebug(PLUGIN_NAME, "Checking 1");
-        if (comma != nullptr && (comma + 1) < (pathTmp + path_len)) {
-//            TSDebug(PLUGIN_NAME, "Checking 2 if ");
-//            TSDebug(PLUGIN_NAME, "comma=%s", comma+1);
-//            TSDebug(PLUGIN_NAME, "file_suffix=%s", ra->file_suffix);
-            f_find = strcasestr(ra->file_suffix, comma + 1);
-            if (f_find != nullptr) {
-                DEBUG_LOG("TSRemapDoRemap f_find");
-                range_header_check(txnp, ra);
-            } else {
-                if (ra->cache_key_no_args) {
-                    change_cache_key(txnp);
-                }
-            }
-        }
+		if(comma != nullptr && (comma + 1) < (pathTmp + path_len)){
+			sprintf(ext,"%s",comma + 1);
+		}else{
+			sprintf(ext,"%s",MIGU_EXT_EMPTY);
+		}
+        DEBUG_LOG("file_suffix=%s,ext=%s,ext_len=%d", ra->file_suffix,ext,ext_len);
+		f_find = strcasestr(ra->file_suffix, ext);
+		if (f_find != nullptr) {
+			DEBUG_LOG("TSRemapDoRemap f_find");
+			range_header_check(txnp, ra);
+		} else {
+			if (ra->cache_key_no_args) {
+				change_cache_key(txnp);
+			}
+		}
     } else {
         DEBUG_LOG("TSRemapDoRemap else");
         range_header_check(txnp, ra);
